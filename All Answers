@@ -1,0 +1,73 @@
+import yfinance as yf
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+
+# Question 1
+Tesla = yf.Ticker("TSLA")
+Tesla_data = Tesla.history(period="max")
+
+Tesla_data.reset_index(inplace=True)
+Tesla_data.head()
+
+
+
+# Question 2
+url = " https://www.macrotrends.net/stocks/charts/TSLA/tesla/revenue"
+html_data = requests.get(url).text
+
+soup = BeautifulSoup(html_data,"html5lib")
+
+
+
+# Question 3
+gme = yf.Ticker("GME")
+gme_data = gme.history(period="max")
+
+gme_data.reset_index(inplace=True)
+gme_data.head()
+
+
+
+# Question 4
+url="https://www.macrotrends.net/stocks/charts/GME/gamestop/revenue"
+html_data= requests.get(url).text
+
+soup = BeautifulSoup(html_data,"html5lib")
+
+
+
+# Question 5
+tables = soup.find_all('table')
+for index,table in enumerate(tables):
+    if ("Tesla Quarterly Revenue" in str(table)):
+        table_index = index
+Tesla_revenue = pd.DataFrame(columns=["Date", "Revenue"])
+for row in tables[table_index].tbody.find_all("tr"):
+    col = row.find_all("td")
+    if (col != []):
+        Date = col[0].text
+        Revenue = col[1].text.replace("$", "").replace(",", "")
+        Tesla_revenue = Tesla_revenue.append({"Date":Date, "Revenue":Revenue}, ignore_index=True)
+
+Tesla_revenue = Tesla_revenue[Tesla_revenue['Revenue'] != ""]
+Tesla_revenue.head()
+
+
+
+# Question 6
+tables = soup.find_all('table')
+for index,table in enumerate(tables):
+    if ("GameStop Quarterly Revenue" in str(table)):
+        table_index = index
+gme_revenue = pd.DataFrame(columns=["Date", "Revenue"])
+for row in tables[table_index].tbody.find_all("tr"):
+    col = row.find_all("td")
+    if (col != []):
+        Date = col[0].text
+        Revenue = col[1].text.replace("$", "").replace(",", "")
+        gme_revenue = gme_revenue.append({"Date":Date, "Revenue":Revenue}, ignore_index=True)
+
+gme_revenue = gme_revenue[gme_revenue['Revenue'] != ""]
+gme_revenue.head()
